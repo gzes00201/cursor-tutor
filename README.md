@@ -31,16 +31,8 @@ cursor-tutor/
 
 1. 克隆此專案：
 ```bash
-git clone https://github.com/yourusername/cursor-tutor.git
+git clone https://github.com/gzes00201/cursor-tutor.git
 ```
 
 2. 使用 Cursor IDE 打開專案
 3. 根據需求探索不同的子專案
-
-## 貢獻指南
-
-歡迎提交 Pull Request 或開啟 Issue 來改進這個教學專案。
-
-## 授權
-
-本專案採用 MIT 授權條款 - 詳見 [LICENSE](LICENSE) 文件
