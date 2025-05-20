@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor 智能日曆示範</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .calendar-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            padding: 5px 15px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calendar-nav button:hover {
+            background-color: #45a049;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calendar-day:hover {
+            background-color: #e0e0e0;
+        }
+
+        .calendar-day.today {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+
+        .event-list {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
+
+        .event-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .event-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+       .is-morning {
+        background-color: #f07e7e;
+       }
+       .is-afternoon {
+        background-color: #f0f0f0;
+       }
+    </style>
+</head>
+
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="calendar-title">2025/5</div>
+            <div class="calendar-nav">
+                <button onclick="previousMonth()">上個月</button>
+                <button onclick="nextMonth()">下個月</button>
+            </div>
+        </div>
+        <div class="calendar-grid">
+            <div class="calendar-weekday">日</div>
+            <div class="calendar-weekday">一</div>
+            <div class="calendar-weekday">二</div>
+            <div class="calendar-weekday">三</div>
+            <div class="calendar-weekday">四</div>
+            <div class="calendar-weekday">五</div>
+            <div class="calendar-weekday">六</div>
+        </div>
+        <div id="calendar-days" class="calendar-grid">
+            <div class="calendar-day other-month">27</div>
+            <div class="calendar-day other-month">28</div>
+            <div class="calendar-day other-month">29</div>
+            <div class="calendar-day other-month">30</div>
+            <div class="calendar-day">1</div>
+            <div class="calendar-day">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day">4</div>
+            <div class="calendar-day">5</div>
+            <div class="calendar-day">6</div>
+            <div class="calendar-day">7</div>
+            <div class="calendar-day">8</div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            <div class="calendar-day">13</div>
+            <div class="calendar-day">14</div>
+            <div class="calendar-day">15</div>
+            <div class="calendar-day today">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day">18</div>
+            <div class="calendar-day">19</div>
+            <div class="calendar-day">20</div>
+            <div class="calendar-day">21</div>
+            <div class="calendar-day">22</div>
+            <div class="calendar-day">23</div>
+            <div class="calendar-day">24</div>
+            <div class="calendar-day">25</div>
+            <div class="calendar-day">26</div>
+            <div class="calendar-day selected">27</div>
+            <div class="calendar-day">28</div>
+            <div class="calendar-day">29</div>
+            <div class="calendar-day">30</div>
+            <div class="calendar-day other-month">31</div>
+            <div class="calendar-day other-month">1</div>
+            <div class="calendar-day other-month">2</div>
+            <div class="calendar-day other-month">3</div>
+            <div class="calendar-day other-month">4</div>
+            <div class="calendar-day other-month">5</div>
+            <div class="calendar-day other-month">6</div>
+            <div class="calendar-day other-month">7</div>
+        </div>
+
+        <div class="event-list">
+            <h3>今日事件</h3>
+            <div id="event-container">
+                <div class="event-item is-morning">
+                    <strong>08:15</strong> - 產品設計會議
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>11:45</strong> - 客戶回饋討論
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>13:20</strong> - 技術研討會
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>15:50</strong> - 行銷策略會議
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>17:30</strong> - 團隊建設活動
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>19:00</strong> - 項目進度檢討
+                </div>
+                <div class="event-item is-afternoon">
+                    <strong>21:15</strong> - 晚間總結會議
+                </div>
+                <div class="event-item is-morning">
+                    <strong>07:30</strong> - 早間例會
+                </div>
+                <div class="event-item is-morning">
+                    <strong>10:45</strong> - 開發團隊同步
+                </div>
+                <div class="event-item is-morning">
+                    <strong>14:00</strong> - 用戶體驗研討
+                </div>
+                <div class="event-item">
+                    <strong>16:10</strong> - 財務報告審查
+                </div>
+                <div class="event-item">
+                    <strong>18:25</strong> - 項目風險評估
+                </div>
+                <div class="event-item">
+                    <strong>20:40</strong> - 晚間策略會議
+                </div>
+                <div class="event-item">
+                    <strong>09:05</strong> - 產品發布準備
+                </div>
+                <div class="event-item">
+                    <strong>12:30</strong> - 午餐與學習
+                </div>
+                <div class="event-item">
+                    <strong>15:00</strong> - 供應商會議
+                </div>
+                <div class="event-item">
+                    <strong>17:45</strong> - 項目收尾會議
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const dateList = [
+            '1','2','3','4','5','6','7','8','9','10',
+            '11','12','13','14','15','16','17','18','19','20',
+            '21','22','23','24','25','26','27','28','29','30'
+        ]
+        const oddList = [ ]
+        const evenList = [ ]
+        const primeList = [
+            1,2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97
+        ]
+
+    </script>
+</body>
+
+</html>

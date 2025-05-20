@@ -1,0 +1,586 @@
+<div class="modal-mask"  [ngClass]="{
+    'is-center': pos === 'center',
+    'is-top': pos === 'top',
+    'is-bottom': pos === 'bottom',
+    'is-right': pos === 'right',
+    }
+  " (mousedown)="events.onCancel.next()">
+    <div class="popup-box" [ngClass]="hasView ? 'visible_'+pos : 'hidden_'+ pos" (mousedown)="$event.stopPropagation();">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">
+                    訂單明細
+                    <ng-container *ngIf="orderInfo">
+                        <span class="modal-title-info" >
+                            <ng-container *ngIf="orderInfo.channel_name">
+                                {{ orderInfo.channel_name }} |
+                            </ng-container>
+                            <ng-container *ngIf="data.platformList">
+                                {{orderInfo.domain | domainToHotel: data.platformList}}
+                            </ng-container>
+                             - {{orderInfo.order_doc}}</span>
+                        <span class="modal-title-date">{{orderInfo.check_in_timestamp * 1000 | date: 'yyyy-MM-dd'}}~{{orderInfo.check_out_timestamp * 1000 | date: 'yyyy-MM-dd'}}</span>
+                    </ng-container>
+
+                </div>
+                <button class="header-close" (click)="events.onCancel.next()">
+                    <span class="material-symbols-rounded icon-close">close</span>
+                </button>
+            </div>
+
+            <!-- TODO: 頁籤切換 -->
+            <app-tab [tabList]="tabList" [activeTab]="currentTab()" [styleDark]="true" [isVisibleControl]="isVisibleControl" (changeTab)="currentTab.set($event)"></app-tab>
+
+            <div class="modal-body" *ngIf="orderInfo">
+                <!-- 訂單內容 -->
+                @if (currentTab() === CURRENT_TAB.MAIN) {
+
+                <!-- 訂單編號&狀態 -->
+                <div class="orderNum">
+                    <div class="orderNum-info">
+                        <div class="orderNum-info-box" *ngIf="orderInfo.channel_name">
+                            <span class="orderNum-title">通路</span>
+                            <br>
+                            <span class="orderNum-name">{{ orderInfo.channel_name }}</span>
+                        </div>
+                        <div class="orderNum-info-box" *ngIf="orderInfo.ota_name">
+                            <span class="orderNum-title">OTA</span>
+                            <br>
+                            <span class="orderNum-name">{{ orderInfo.ota_name }}</span>
+                        </div>
+                        <div class="orderNum-info-box">
+                            <span class="orderNum-title">訂單編號</span>
+                            <br>
+                            <span class="orderNum-name">{{orderInfo.order_doc}}</span>
+                            <span class="material-symbols-rounded icon-copy" (click)="copyOrderDocToClipboard(orderInfo.order_doc)">content_copy</span>
+                        </div>
+                    </div>
+
+                    <!-- 訂單狀態 -->
+                    <div class="statusGroup">
+                        <!-- 訂單狀態 (訂單成立 .is-establish ｜ 訂單取消 付款失敗 .is-canceled ｜ 已預訂(已付款) .is-payed) -->
+                        <span class="status order-status" [ngClass]="{
+                            'is-establish': orderInfo.display_status === ORDER_DISPLAY_STATUS.ESTABLISH,
+                            'is-canceled':orderInfo.display_status === ORDER_DISPLAY_STATUS.FAIL || orderInfo.display_status === ORDER_DISPLAY_STATUS.CANCEL,
+                            'is-payed': orderInfo.display_status === ORDER_DISPLAY_STATUS.PAYED}">
+                            @if(orderInfo.display_status === ORDER_DISPLAY_STATUS.ESTABLISH) { 訂單成立 }
+                            @if(orderInfo.display_status === ORDER_DISPLAY_STATUS.PAYED) { 已預訂 }
+                            @if(orderInfo.display_status === ORDER_DISPLAY_STATUS.FAIL || orderInfo.display_status === ORDER_DISPLAY_STATUS.CANCEL) { 已取消 }
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 訂單狀態紀錄 -->
+                <div class="row-wrapper">
+                    <div class="track">
+                        <div class="track-box">
+                            <div class="track-title">成立時間</div>
+                            <div class="track-time">{{orderInfo.created_at*1000 | date:'yyyy-MM-dd HH:mm:ss a'}}</div>
+                        </div>
+                        <div class="track-box" *ngIf="false">
+                            <div class="track-title">修改時間</div>
+                            <div class="track-time">-</div>
+                        </div>
+                        <div class="track-box" *ngIf="false">
+                            <div class="track-title">取消時間</div>
+                            <div class="track-time">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-wrapper">
+                    <div class="card">
+                        <div class="flex">
+                            <!-- 飯店 -->
+                            <div class="hotel">
+                                <ng-container *ngIf="data.platformList">
+                                    <span class="material-symbols-rounded material-icon is-hotel">apartment</span>
+                                    {{orderInfo.domain | domainToHotel: data.platformList}}
+                                </ng-container>
+                            </div>
+
+                            <!-- [入住狀態] 待入住:.is-wait, 已入住: .is-checkin | 未入住: .is-noshow -->
+                            <div class="status checkin-status" *ngIf="orderInfo.checkin_status !== OrderCheckinStatus.CANCLE && orderInfo.display_status !== ORDER_DISPLAY_STATUS.CANCEL"
+                                    [ngClass]="{
+                                        'is-wait':  orderInfo.checkin_status === OrderCheckinStatus.UPCOMING,
+                                        'is-checkin':  orderInfo.checkin_status === OrderCheckinStatus.CHECKED_IN,
+                                        'is-noshow':  orderInfo.checkin_status === OrderCheckinStatus.NOSHOW,
+                                }">
+                                @if( orderInfo.checkin_status === OrderCheckinStatus.UPCOMING) { 待入住 }
+                                @if( orderInfo.checkin_status === OrderCheckinStatus.CHECKED_IN) { 已入住 }
+                                @if( orderInfo.checkin_status === OrderCheckinStatus.NOSHOW) { 未入住 }
+                            </div>
+                        </div>
+
+
+                        <!-- 日期 -->
+                        <div class="date">
+                            <div class="date-box">
+                                <div class="date-title">入住日期</div>
+                                <div class="date-text">
+                                    <span class="material-symbols-outlined icon-calendar">calendar_month</span>
+                                    {{orderInfo.check_in_timestamp * 1000 | date: 'yyyy-MM-dd EEE'}}
+                                </div>
+                            </div>
+                            <div class="date-night">{{diffDay}} 晚</div>
+                            <div class="date-box">
+                                <div class="date-title">退房日期</div>
+                                <div class="date-text">
+                                    <span class="material-symbols-outlined icon-calendar">calendar_month</span>
+                                    {{orderInfo.check_out_timestamp * 1000 | date: 'yyyy-MM-dd EEE'}}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 房型資料 -->
+                        @for (order of orderInfo.orders; track $index) {
+                        <div class="detail-line-wrapper">
+                            <div class="detail-line">
+                                <div class="detail-line-title">房型x方案</div>
+                                <div class="detail-line-content">
+                                    <div class="room-rate-info">
+                                        <div class="room-rate-name">{{order.room_class_name}} - {{order.rate_plans.rate_plan_name}}</div>
+                                        @if (order.rate_plans.promotion_title) {
+                                            <div class="project-box">
+                                                <span class="tag">
+                                                    <span class="material-symbols-rounded icon-tag">sell</span>
+                                                    {{order.rate_plans.promotion_title}}
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="detail-line" *ngIf="false">
+                                <div class="detail-line-title">入住人數</div>
+                                <div class="detail-line-content">2人</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">入住人</div>
+                                <div class="detail-line-content">{{orderInfo.booker_last_name}}</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">手機</div>
+                                <div class="detail-line-content">{{orderInfo.booker_phone}}</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">電子信箱</div>
+                                <div class="detail-line-content">{{orderInfo.booker_email}}</div>
+                            </div>
+                        </div>
+                        }
+
+                        <!-- 特殊需求 -->
+                        <div class="detail-memo" *ngIf="orderInfo">
+                            <div class="detail-memo-title">
+                                特殊需求
+                            </div>
+                            <div class="detail-memo-content" *ngIf="orderInfo.memo" [innerHTML]="(orderInfo.memo | textBreak)"></div>
+                        </div>
+                    </div>
+
+                    <div class="card section-price">
+                        <ng-container *ngIf="isShowOrderAmount">
+                            <div class="flex" *ngIf="orderInfo.channel_is_direct">
+                                <div class="status-title">付款狀態</div>
+                                <!-- [付款狀態] 已付款/部分付款: .is-payed ｜ 未付款: .is-unpayed -->
+                                <span class="status pay-status"
+                                [ngClass]="{
+                                    'is-pay-yet': orderInfo.payment_status === ORDER_PAYMENT_STATUS.ESTABLISH || (orderInfo.payment_status === ORDER_PAYMENT_STATUS.FAIL && orderInfo.paid_amount === 0) || orderInfo.payment_status === ORDER_PAYMENT_STATUS.VERIFYING,
+                                    'is-payed': (orderInfo.payment_status === ORDER_PAYMENT_STATUS.ALL || orderInfo.payment_status === ORDER_PAYMENT_STATUS.PART) || (orderInfo.payment_status === ORDER_PAYMENT_STATUS.FAIL && orderInfo.paid_amount > 0),
+                                    'is-canceled': orderInfo.payment_status === ORDER_PAYMENT_STATUS.FAIL,
+                                }">
+                                    @if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.ESTABLISH) {
+                                        未付款
+                                    }
+                                    @else if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.PART) {
+                                        部分付款
+                                    }
+                                    @else if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.ALL) {
+                                        已付款
+                                    }
+                                    @else if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.FAIL) {
+                                        付款失敗
+                                    }
+                                    @else if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.REFUND_SUCCESS) {
+                                        已退款
+                                    }
+                                    @else if (orderInfo.payment_status === ORDER_PAYMENT_STATUS.REFUND_FAIL) {
+                                        退款失敗
+                                    }
+
+                                </span>
+                            </div>
+
+                            <!-- 訂單金額總覽 -->
+                            <div class="total-box">
+                                <div class="total">
+                                    <div class="total-title">訂單總額</div>
+                                    <div class="total-total">TWD {{ orderInfo.sum| currency:'$':'symbol':'0.0-0'}}</div>
+                                </div>
+                                <div class="total" *ngIf="orderInfo.is_deposit_payed">
+                                    <div class="total-title">
+                                        訂金
+                                        <!-- 提示訊息 -->
+                                        <div class="hint-box">
+                                            <span class="material-symbols-rounded hint-icon" (click)="isShowDepositHint = !isShowDepositHint">info</span>
+                                            <div class="hint-tooltip" *ngIf="isShowDepositHint">
+                                                訂金包含房費總額{{ ( orderInfo.pay_amount) / orderInfo.origin_price | percent}}與所有加購款項。 </div>
+                                        </div>
+                                    </div>
+                                    <div class="total-total">TWD {{ !!orderInfo.deposit_amount && !!orderInfo.all_attachment_amount ? orderInfo.deposit_amount + orderInfo.all_attachment_amount : orderInfo.deposit_amount | currency:'$':'symbol':'0.0-0'}}</div>
+                                </div>
+                                <!-- 最終要付款的金額 -->
+                                <div class="total" *ngIf="orderInfo.channel_is_direct">
+                                    <div class="total-title">訂單實收</div>
+                                    <div class="total-total text-color--danger">TWD {{ orderInfo.paid_amount| currency:'$':'symbol':'0.0-0'}}<br>
+                                        <div class="hint-onsite"
+                                        *ngIf="(orderInfo.sum - orderInfo.paid_amount + orderInfo.coupon_discount!) > 0 && !(orderInfo.display_status === ORDER_DISPLAY_STATUS.FAIL || orderInfo.display_status === ORDER_DISPLAY_STATUS.CANCEL || orderInfo.display_status === ORDER_DISPLAY_STATUS.ESTABLISH)">其餘 TWD {{ (orderInfo.sum - orderInfo.paid_amount + orderInfo.coupon_discount!)| currency:'$':'symbol':'0.0-0'}} 到店付清</div>
+                                        <!-- 需退款 -->
+                                        <div  class="hint-onsite" *ngIf="orderInfo.sum - orderInfo.paid_amount < 0">
+                                            需退款 TWD {{(orderInfo.paid_amount - orderInfo.sum) | currency:'$':'symbol':'0.0-0'}}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- 金流資料 -->
+                        <div class="detail-line-wrapper" [class.top-border-hidden]="!isShowOrderAmount">
+                            <div class="detail-line">
+                                <div class="detail-line-title">會員編號</div>
+                                <div class="detail-line-content">{{orderInfo.booker_id}}</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">姓名</div>
+                                <div class="detail-line-content">{{orderInfo.booker_last_name}}</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">手機</div>
+                                <div class="detail-line-content">{{orderInfo.booker_phone}}</div>
+                            </div>
+                            <div class="detail-line">
+                                <div class="detail-line-title">電子信箱</div>
+                                <div class="detail-line-content">{{orderInfo.booker_email}}</div>
+                            </div>
+                        </div>
+
+                        <ng-container *ngIf="isShowOrderAmount">
+                            <!-- NOTE: 點擊顯示金額詳情 -->
+                            <button class="btn btn--stroke-default size--full btn-detail" (click)="toggleDetail()">
+                                詳情
+                                @if (isShow) {
+                                    <span class="material-symbols-rounded">keyboard_arrow_up</span>
+                                }
+                                @else {
+                                    <span class="material-symbols-rounded">keyboard_arrow_down</span>
+                                }
+                            </button>
+
+                            <!-- 詳情 -->
+                            @if (isShow) {
+                            <div class="order-box">
+                                <!-- 房型方案 -->
+                                <div class="order order--plan">
+                                    @for (order of orderInfo.orders; track $index) {
+                                        <div class="order-item is-title">
+                                            <div class="order-item-name text-bold">{{order.room_class_name}}-{{order.rate_plans.rate_plan_name}}</div>
+                                            <div class="order-item-count">x{{order.num}}</div>
+                                            <div class="order-item-amount">TWD {{order.price| currency:'$':'symbol':'0.0-0'}}</div>
+                                        </div>
+                                        <!-- 加購 房型方案加購 -->
+                                        @if (attachmentDetailDisplay && getRoomPlanAttachment(order.room_class_id, order.rate_plans.rate_plan_id)) {
+                                            @for (room of getRoomPlanAttachment(order.room_class_id, order.rate_plans.rate_plan_id); track $index) {
+                                                @if (room.adds_list.length > 0) {
+                                                    <div class="order-item attachment-room-seq">房間{{ room.seq }}</div>
+                                                }
+                                                @for (add of room.adds_list; track $index) {
+                                                    <div class="order-item">
+                                                        <div class="order-item-name attachment-name">
+                                                            {{ add.item_name }}
+                                                            <div class="hint-box" (mouseenter)="add.isOpen = true" (mouseleave)="add.isOpen = false">
+                                                                <span class="material-symbols-rounded text-hint-icon">info</span>
+                                                                <div class="hint-tooltip" *ngIf="add.isOpen">
+                                                                    @for (date of add.date_price; track $index) {
+                                                                        <div>{{ date.date }} x{{ date.quantity }}</div>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="order-item-amount">
+                                                            TWD {{ getTotalPriceEachAttachment(add.date_price) | currency:'$':'symbol':'0.0-0' }}
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    <!-- 其他加購商品: 訂單加購, 高鐵加購 -->
+                                    @if ((attachmentDetailDisplay && attachmentDetailDisplay.others.items.length > 0) ||
+                                        (railOrderList && railOrderList.length > 0)) {
+                                        <div class="order-item is-title text-bold">其他加購商品</div>
+                                    }
+
+                                    <!-- 加購 訂單加購 -->
+                                    @if (attachmentDetailDisplay && attachmentDetailDisplay.others.items.length > 0) {
+                                        @for (item of attachmentDetailDisplay.others.items; track $index) {
+                                            <div class="order-item">
+                                                <div class="order-item-name attachment-name">{{ item.item_name }}</div>
+                                                <div class="order-item-count">
+                                                    x{{ item.quantity }}
+                                                </div>
+                                                <div class="order-item-amount">
+                                                    TWD {{ item.total_price | currency:'$':'symbol':'0.0-0' }}
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+
+                                    <!-- 加購 高鐵票 -->
+                                    @if (railOrderList && railOrderList.length>0) {
+                                        <div class="order-item" *ngFor="let rail of railOrderList">
+                                            <div class="order-item-name rail-name">
+                                                @if (rail.trip_type === TRIP_TYPE.OUTBOUND) {
+                                                    去程高鐵
+                                                } @else if (rail.trip_type === TRIP_TYPE.RETURN) {
+                                                    回程高鐵
+                                                }
+                                                @if(rail.status === TICKET_STATUS.CANCELED){
+                                                    <span>-退票</span>
+                                                    <div class="hint-box" (mouseenter)="isShowHint = true" (mouseleave)="isShowHint = false">
+                                                        <span class="material-symbols-rounded text-hint-icon">info</span>
+                                                        <div class="hint-tooltip" *ngIf="isShowHint">無自動退款，飯店需自行退費給住客</div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="order-item-count">
+                                                x{{rail.passenger.adultNum + rail.passenger.childNum + rail.passenger.disabledNum + rail.passenger.seniorNum}}
+                                            </div>
+                                            <div class="order-item-amount" [class.text-color--danger]="rail.status === TICKET_STATUS.CANCELED">
+                                                @if (rail.status === TICKET_STATUS.CANCELED) {
+                                                    TWD $0
+                                                } @else {
+                                                    TWD {{rail.booking_total_price| currency:'$':'symbol':'0.0-0'}}
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            }
+                        </ng-container>
+                    </div>
+                </div>
+                }
+
+                <!-- 金流紀錄 -->
+                @if (currentTab() === CURRENT_TAB.RECORD) {
+                    @if (data.paymentRecord && data.paymentRecord.length > 0 && orderInfo) {
+                        <div class="cashflow-paid">
+                            <div class="cashflow-paid-title">已付金額</div>
+                            <div class="cashflow-paid-content">
+                                <span class="amount-paid">{{orderInfo.paid_amount | currency:'$':'symbol':'0.0-0' }}</span>
+                                /{{orderInfo.sum | currency:'$':'symbol':'0.0-0'}}
+                            </div>
+                        </div>
+
+                        <!-- 官網金流紀錄-->
+                        @if(
+                            otaService.otaMemberSystemName === '' && payInfo.length === 0) {
+                                <table class="table">
+                                    <thead>
+                                        <tr class="tr">
+                                            <th class="th">付款日期</th>
+                                            <th class="th">付款項目</th>
+                                            <th class="th">付款金流</th>
+                                            <th class="th">付款方式</th>
+                                            <th class="th align-right">付款金額</th>
+                                            <th class="th align-center">發票號碼</th>
+                                            <th class="th">付款狀態</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        <!-- 會員點數 & 優惠碼折扣 -->
+                                        <tr class="tr" *ngFor="let item of data.pointCouponRecord; let i = index">
+                                            <td class="td">{{item.created_at * 1000 | date: 'yyyy-MM-dd HH:mm' }}</td>
+                                            <td class="td">
+                                                {{item.payment_method}}
+                                                <div class="hint-box">
+                                                    <span class="material-symbols-rounded hint-icon" (click)="isShowCouponHint = !isShowCouponHint">info</span>
+                                                    <div class="hint-tooltip" *ngIf="isShowCouponHint">
+                                                        {{item.coupon_description}}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="td">{{item.vendor}}</td>
+                                            <td class="td">{{item.payment_method}}</td>
+                                            <td class="td align-right">{{item.amount}}</td>
+                                            <td class="td"></td>
+                                            <td class="td">
+                                                <span class="cashflow-status text-color--success" *ngIf="item.payment_status">成功</span>
+                                                <!-- <span class="cashflow-status text-color--warning" *ngIf="item.payment_status === 'processing'">待同步</span> -->
+                                                <span class="cashflow-status text-color--danger" *ngIf="!item.payment_status">
+                                                    <span class="material-symbols-rounded">warning</span>
+                                                    失敗
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr class="tr" *ngFor="let item of data.paymentRecord; let i = index">
+                                            <!-- 付款日期 -->
+                                            <td class="td">{{item.created_at * 1000 | date: 'yyyy-MM-dd HH:mm' }}</td>
+
+                                            <!-- 付款項目 -->
+                                            <td class="td">{{item.product_name}}</td>
+
+                                            <!-- 付款金流 -->
+                                            <td class="td">{{item.vendor | paymentVendorTrans}}</td>
+
+                                            <!-- 付款方式 -->
+                                            <td class="td">
+                                                {{item.payment_method | paymentMethodTrans}}
+                                                @if (item.payment_method === 'REMITTANCE') {
+                                                    <!-- 轉帳資訊 -->
+                                                    <span class="hint-box">
+                                                        <span class="material-symbols-rounded hint-icon" (click)="showHint === i ? (showHint=-1) : (showHint = i)">info</span>
+                                                        @if (showHint === i && item.pay_info && item.pay_info.length > 0) {
+                                                            <span class="hint-tooltip"  >
+                                                                末五碼: {{item.pay_info[0].last_five}}
+                                                                <br>
+                                                                備註: {{item.pay_info[0].memo}}
+                                                            </span>
+                                                        }
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <!-- 付款金額 -->
+                                            <td class="td align-right" *ngIf="item.refund_amount && item.refund_amount > 0">TWD {{item.refund_amount | currency:'$':'symbol':'0.0-0'}}</td>
+                                            <td class="td align-right" *ngIf="item.amount && item.refund_amount === 0">TWD {{item.amount | currency:'$':'symbol':'0.0-0'}}</td>
+
+                                            <!-- 發票號碼 -->
+                                            <td class="td align-center"></td>
+
+                                            <!-- 付款狀態 -->
+                                            <td class="td is-flex">
+                                                <span class="cashflow-status text-color--success" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.SUCCESS">成功</span>
+                                                <span class="cashflow-status text-color--warning" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.PROCESSING">待同步</span>
+                                                <span class="cashflow-status text-color--warning" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.REFUND_SUCCESS">已退款</span>
+                                                <span class="cashflow-status text-color--danger" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.REFUND_FAIL">退款失敗</span>
+                                                <span class="cashflow-status text-color--warning" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.REFUND_PROCESSING">退款審核中</span>
+                                                <button type="button" class="btn btn--solid-warning btn-shortCut size--small display-inline btn-refund" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.REFUND_FAIL && !this.hasRefunded && (i < 2 && i !== 1)" (click)="refund(item)">
+                                                    <span class="material-icons-round">refresh</span>
+                                                    <div class="btn-tooltip">重啟金流</div>
+                                                </button>
+                                                <span class="cashflow-status text-color--danger" *ngIf="item.payment_status === AMOUNT_PAYMENT_STATUS.FAIL">
+                                                    <span class="material-symbols-rounded">warning</span>
+                                                    失敗
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                        } @else {
+                            <!-- HOL金流紀錄 pay_info 顯示金流明細細，這邊是12cm有回傳金流紀錄才會有 -->
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="th">交易日期</th>
+                                        <th class="th">交易項目</th>
+                                        <th class="th">交易金流</th>
+                                        <th class="th">交易方式</th>
+                                        <th class="th align-right">交易金額</th>
+                                        <th class="th align-center">發票號碼</th>
+                                        <th class="th">交易狀態</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="tr" *ngFor="let item of payInfo">
+                                        <!-- 交易日期 -->
+                                        <td class="td">
+                                            <span *ngIf="item.finish_time">
+                                                {{item.finish_time * 1000 | date: 'yyyy-MM-dd HH:mm' }}
+                                            </span>
+                                            <span *ngIf="!item.finish_time">
+                                                <ng-container *ngFor="let detail of data.paymentRecord">
+                                                    <ng-container *ngIf="detail.payment_status === 'refund_processing' || detail.payment_status === 'fail'">
+                                                        <span>{{detail.updated_at * 1000 | date: 'yyyy-MM-dd HH:mm' }}</span>
+                                                    </ng-container>
+                                                </ng-container>
+                                            </span>
+                                        </td>
+
+
+                                        <!-- 交易項目 -->
+                                        <td class="td">{{item.notify_type === 2 ? '取消訂單退款' : ''}} {{item.notify_type !== 2 ? item.description : ''}}</td>
+
+                                        <!-- 交易金流 -->
+                                        <td class="td">{{data.paymentRecord[0].vendor}}</td>
+
+                                        <!-- 交易方式 -->
+                                        <td class="td">{{item.payment_method}}</td>
+
+                                        <!-- 交易金額 -->
+                                        <td class="td align-right">
+                                            <ng-container *ngIf="item.payment_method !== 'HOTELPOINT'">
+                                                <span *ngIf="item.amount < 0" [class.is-danger]="item.amount < 0">- TWD {{-item.amount | currency:'$':'symbol':'0.0-0'}}</span>
+                                                <span *ngIf="item.amount >= 0">TWD {{item.amount | currency:'$':'symbol':'0.0-0'}}</span>
+                                            </ng-container>
+                                            <ng-container *ngIf="item.payment_method === 'HOTELPOINT'">
+                                                <span *ngIf="item.amount < 0" [class.is-danger]="item.amount < 0">-{{-item.amount}}</span>
+                                                <span *ngIf="item.amount >= 0">{{item.amount}}</span>
+                                            </ng-container>
+                                        </td>
+
+                                        <!-- 發票號碼 -->
+                                        <td class="td align-center"></td>
+
+                                        <!-- 交易狀態 -->
+                                        <td class="td">
+                                            <ng-container *ngIf="item.payment_status_detail; else paymentStatusTemp">
+                                                <span class="cashflow-status text-color--warning">退款審核中</span>
+                                            </ng-container>
+                                            <ng-template #paymentStatusTemp>
+                                                <span class="cashflow-status text-color--success" *ngIf="item.payment_status">成功</span>
+                                                <!-- <span class="cashflow-status text-color--warning" *ngIf="item.payment_status === 'processing'">待同步</span> -->
+                                                <span class="cashflow-status text-color--danger" *ngIf="!item.payment_status">
+                                                    <span class="material-symbols-rounded">warning</span>
+                                                    失敗
+                                                </span>
+                                            </ng-template>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        }
+                    } @else {
+                        <app-empty-box icon="search" title="暫無資料" text="無金流資料" />
+                    }
+
+                }
+
+                <!-- 高鐵資訊 -->
+                @if (currentTab() === CURRENT_TAB.RAIL) {
+                    <app-detail-rail-info-bm [railOrder]="railOrderList" [totalPirce]="orderInfo.attachment_amount"></app-detail-rail-info-bm>
+                }
+
+                <!-- 加購品 -->
+                @if (currentTab() === CURRENT_TAB.ATTACHMENT) {
+                    <app-detail-attachment [attachmentDetail]="attachmentDetailDisplay"></app-detail-attachment>
+                }
+
+                <!-- 留言板 -->
+                @if (currentTab() === CURRENT_TAB.MESSAGE) {
+                    <app-detail-message-bm [reconciliationMsgList]="reconciliationMsgList" [reconciliationMsgName]="reconciliationMsgName" [role]="this.data.role" [order_doc]="orderInfo.order_doc"></app-detail-message-bm>
+                }
+
+                <!-- 請款明細 -->
+                @if (currentTab() === CURRENT_TAB.RECONCILIATION) {
+                    <app-detail-reconciliation [role]="this.data.role" [reconciliationCanEdit]="reconciliationCanEdit" [order_doc]="orderInfo.order_doc" [reconciliation_id]="reconciliation_id" [reconciliationDetail]="reconciliationDetail" [events]="events"></app-detail-reconciliation>
+                }
+            </div>
+        </div>
+    </div>
+</div>

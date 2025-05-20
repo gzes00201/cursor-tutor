@@ -1,0 +1,51 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 專案結構說明
+
+## 主要文件
+- [commandK.js](mdc:cursor-k/commandK.js) - 主要的程式碼文件，包含以下功能：
+  - 數學計算工具函數
+  - 用戶資料處理
+  - 台灣國定假日資料管理
+
+## 功能模組
+
+### 數學計算
+- `calculateSum()` - 計算數組總和
+- `calculateAverage()` - 計算數組平均值
+- `filterEvenNumbers()` - 過濾偶數
+
+### 用戶管理
+- `findUserById()` - 根據ID查找用戶
+- `getUserNames()` - 獲取所有用戶名稱
+
+### 假日管理
+- `getHolidays()` - 獲取所有國定假日
+- `findHolidayByDate()` - 根據日期查找假日
+
+## 資料結構
+
+### 用戶資料
+```javascript
+{
+    id: number,
+    name: string,
+    age: number
+}
+```
+
+### 假日資料
+```javascript
+{
+    date: string,  // 格式：YYYY-MM-DD
+    name: string   // 假日名稱
+}
+```
+
+## 使用說明
+1. 執行 `main()` 函數可以查看所有功能的示範
+2. 假日資料目前包含 2025 年的台灣國定假日
+3. 所有日期格式均採用 ISO 8601 標準（YYYY-MM-DD）
