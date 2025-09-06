@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待辦事項應用</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>我的待辦事項</h1>
+            <div class="stats">
+                <span id="total-tasks">總計: 0</span>
+                <span id="completed-tasks">已完成: 0</span>
+                <span id="pending-tasks">待完成: 0</span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="add-task-section">
+                <input type="text" id="task-input" placeholder="輸入新的待辦事項...">
+                <select id="priority-select">
+                    <option value="low">低優先級</option>
+                    <option value="medium" selected>中優先級</option>
+                    <option value="high">高優先級</option>
+                </select>
+                <select id="category-select">
+                    <option value="work">工作</option>
+                    <option value="personal">個人</option>
+                    <option value="shopping">購物</option>
+                    <option value="other">其他</option>
+                </select>
+                <button id="add-task-btn">添加任務</button>
+            </div>
+            
+            <div class="filter-section">
+                <label>
+                    <input type="radio" name="filter" value="all" checked> 全部
+                </label>
+                <label>
+                    <input type="radio" name="filter" value="pending"> 待完成
+                </label>
+                <label>
+                    <input type="radio" name="filter" value="completed"> 已完成
+                </label>
+                <select id="category-filter">
+                    <option value="all">所有分類</option>
+                    <option value="work">工作</option>
+                    <option value="personal">個人</option>
+                    <option value="shopping">購物</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            
+            <ul id="task-list" class="task-list">
+                <!-- 任務將在這裡動態添加 -->
+            </ul>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

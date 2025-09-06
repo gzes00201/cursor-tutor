@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "nasa-mcp": {
+      "command": "npx",
+      "args": ["@programcomputer/nasa-mcp-server"],
+      "env": {
+        "NASA_API_KEY": "DEMO_KEY"
+      }
+    },
+    "weather-mcp": {
+      "command": "npx",
+      "args": ["@programcomputer/weather-mcp-server"],
+      "env": {
+        "WEATHER_API_KEY": "your-weather-api-key-here"
+      }
+    },
+    "filesystem-mcp": {
+      "command": "npx",
+      "args": ["@programcomputer/filesystem-mcp-server"]
+    },
+    "database-mcp": {
+      "command": "npx",
+      "args": ["@programcomputer/database-mcp-server"],
+      "env": {
+        "DATABASE_URL": "sqlite:./database.db"
+      }
+    }
+  }
+}
