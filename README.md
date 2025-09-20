@@ -1,38 +1,54 @@
-# Cursor Tutor
+# Cursor Workshop 練習專案
 
-這是一個用於展示和學習 Cursor IDE 功能的教學專案集合。
+## 🎯 專案目標
+這個專案設計用於 Cursor 教學課程的實作練習，讓學員能夠實際操作 Cursor 的各種功能。
 
-## 專案結構
+## 📚 練習內容
+- **TAB 功能練習** - 智能代碼補全
+- **Chat 功能練習** - AI 對話與代碼生成
+- **⌘K 功能練習** - 自然語言編輯
+- **Rule 功能練習** - 專案規則設定
+- **MCP 功能練習** - 外部工具整合
+- **Agent 功能練習** - Background Agent, Cursor Agent, Bugbot
 
+## 🗂️ 專案結構
 ```
-cursor-tutor/
-├── cursor-chat/        # Cursor 聊天功能示範
-│   └── docs/          # 相關文檔
-├── cursor-k/          # Cursor 快捷鍵功能示範
-└── cursor-tab-demo/   # Cursor 分頁功能示範
-```
-
-## 專案用途
-
-本專案旨在幫助開發者：
-
-1. 🎯 學習 Cursor IDE 的核心功能
-2. 💡 展示 Cursor IDE 的最佳實踐
-3. 🔍 提供實際的示例代碼
-4. 📚 通過實踐來掌握 Cursor IDE 的使用技巧
-
-### 子專案說明
-
-- **cursor-chat**: 展示 Cursor IDE 內建的 AI 對話功能，包含實用的對話範例和最佳實踐
-- **cursor-k**: 展示 Cursor IDE 的快捷鍵功能，幫助提升開發效率
-- **cursor-tab-demo**: 展示 Cursor IDE 的分頁管理功能，優化多文件編輯體驗
-
-## 開始使用
-
-1. 克隆此專案：
-```bash
-git clone https://github.com/gzes00201/cursor-tutor.git
+cursor-workshop-exercises/
+├── README.md                    # 本文件
+├── exercises/                   # 練習題目
+│   ├── 01-tab-exercises/       # TAB 功能練習
+│   ├── 02-chat-exercises/      # Chat 功能練習
+│   ├── 03-commandk-exercises/  # ⌘K 功能練習
+│   ├── 04-rule-exercises/      # Rule 功能練習
+│   ├── 05-mcp-exercises/       # MCP 功能練習
+│   └── 06-agent-exercises/     # Agent 功能練習
+├── sample-projects/            # 範例專案
+│   ├── todo-app/              # 待辦事項應用
+│   ├── weather-app/           # 天氣應用
+│   └── blog-system/           # 部落格系統
+├── .cursor/                   # Cursor 配置
+│   ├── rules                  # 專案規則
+│   └── mcp.json              # MCP 配置
+└── solutions/                 # 練習解答（講師用）
 ```
 
-2. 使用 Cursor IDE 打開專案
-3. 根據需求探索不同的子專案
+## 🚀 開始使用
+1. 使用 Cursor 開啟此專案
+2. 按照 `exercises/` 目錄中的練習題進行操作
+3. 每個練習都有詳細的說明和預期結果
+
+## 📖 練習順序建議
+建議按照以下順序進行練習：
+1. TAB 功能練習（基礎）
+2. Chat 功能練習（對話）
+3. ⌘K 功能練習（編輯）
+4. Rule 功能練習（配置）
+5. MCP 功能練習（整合）
+6. Agent 功能練習（進階）
+
+## 🎓 學習目標
+完成所有練習後，學員應該能夠：
+- 熟練使用 Cursor 的各種功能
+- 理解 AI 輔助編程的最佳實踐
+- 掌握專案規則設定和外部工具整合
+- 能夠獨立使用 Cursor 進行開發工作
